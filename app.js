@@ -7,16 +7,7 @@ const multiply = document.querySelector("#multiply");
 const subtract = document.querySelector("#subtract");
 const add = document.querySelector("#add");
 const equals = document.querySelector("#equals");
-// const zero = document.querySelector("#zero");
-// const one = document.querySelector("#one");
-// const two = document.querySelector("#two");
-// const three = document.querySelector("#three");
-// const four = document.querySelector("#four");
-// const five = document.querySelector("#five");
-// const six = document.querySelector("#six");
-// const seven = document.querySelector("#seven");
-// const eight = document.querySelector("#eight");
-// const nine = document.querySelector("#nine");
+
 let displayValue = 0;
 let firstNumber = 0;
 let secondNumber;
@@ -43,31 +34,31 @@ function operate(num1, num2, operator) {
   }
 }
 
-function operatorSymbol(operatorText){
-    switch(operatorText){
-        case 'add':
-            return '+';
-            break;
-        case 'subtract':
-            return '-';
-            break;
-        case 'multiply':
-            return '×';
-            break;
-        case 'divide':
-            return '÷';
-            break;
-    }
+function operatorSymbol(operatorText) {
+  switch (operatorText) {
+    case "add":
+      return "+";
+      break;
+    case "subtract":
+      return "-";
+      break;
+    case "multiply":
+      return "×";
+      break;
+    case "divide":
+      return "÷";
+      break;
+  }
 }
 
 for (let numButton of numButtons) {
   numButton.addEventListener("click", () => {
     const number = numButton.innerText;
-    if (`${displayValue}`.length < 11) {
+    if (`${displayValue}`.length < 10) {
       if (displayValue === 0) {
         displayValue = parseInt(number);
       } else {
-        displayValue = parseInt(`${displayValue}${number}`)
+        displayValue = parseInt(`${displayValue}${number}`);
       }
       screenBottom.innerText = displayValue;
     }
@@ -75,7 +66,13 @@ for (let numButton of numButtons) {
 }
 
 for (let operatorButton of operatorButtons) {
-  operatorButton.addEventListener('click', (e) => {
+  operatorButton.addEventListener("click", (e) => {
+    if(screenTop.innerText){
+        let num1 = parseInt(screenTop.innerText.split(' ')[0]);
+        let num2 = displayValue 
+        displayValue = operate(num1, num2, operator);
+        screenBottom.innerText = displayValue;
+    }
     operator = e.target.id;
     firstNumber = displayValue;
     screenTop.innerText = `${firstNumber} ${e.target.innerText}`;
@@ -83,13 +80,13 @@ for (let operatorButton of operatorButtons) {
   });
 }
 
-clearButton.addEventListener('click', () => {
+clearButton.addEventListener("click", () => {
   displayValue = 0;
   screenBottom.innerText = displayValue;
-  screenTop.innerText = '';
+  screenTop.innerText = "";
 });
 
-deleteButton.addEventListener('click', () => {
+deleteButton.addEventListener("click", () => {
   if (screenBottom.innerText.length === 1) {
     displayValue = 0;
     screenBottom.innerText = displayValue;
@@ -99,10 +96,12 @@ deleteButton.addEventListener('click', () => {
   }
 });
 
-equals.addEventListener('click', () => {
+equals.addEventListener("click", () => {
   secondNumber = displayValue;
   result = operate(firstNumber, secondNumber, operator);
   displayValue = result;
   screenBottom.innerText = displayValue;
-  screenTop.innerText = `${firstNumber} ${operatorSymbol(operator)} ${secondNumber} =`;
+  screenTop.innerText = `${firstNumber} ${operatorSymbol(
+    operator
+  )} ${secondNumber} =`;
 });
