@@ -5,17 +5,27 @@ const deleteButton = document.querySelector("#delete");
 const equals = document.querySelector("#equals");
 const decimal = document.querySelector("#decimal");
 
-let currentValue = '0';
+let currentValue = '';
 let previousValue = '';
 let operator = '';
+let receipt = [];
 
 const numButtons = document.querySelectorAll(".num");
 const operatorButtons = document.querySelectorAll(".oper");
 
-function operate(str1, str2, operator) {
-  let num1 = Number.parseFloat(str1);
-  let num2 = Number.parseFloat(str2);
-  switch (operator) {
+function evaluate(receiptInput){
+  if(receipt.length < 3){
+    return receipt[0];
+  }
+  else{
+    return operate(...receipt);
+  }
+}
+
+function operate(str1, operatorSymbol, str2) {
+  let num1 = Number(str1);
+  let num2 = Number(str2);
+  switch (operatorSymbol) {
     case "+":
       return (num1 + num2).toString();
       break;
@@ -37,129 +47,76 @@ numButtons.forEach((button) => {
   });
 });
 
+decimal.addEventListener('click', addDecimal);
+
 operatorButtons.forEach((button) => {
   button.addEventListener('click', (e) => {
     addOperation(e.target.innerText);
   })
 })
 
+deleteButton.addEventListener('click', () => {
+  currentValue = currentValue.slice(0,-1);
+  screenBottom.innerText = currentValue;
+});
+
 equals.addEventListener('click', () => {
-  if(currentValue && previousValue && operator){
-    updateTopScreen(previousValue + " " + operator + " " + currentValue + " =");
-    currentValue = operate(previousValue, currentValue, operator)
-    currentValue = (Math.round(currentValue * 1000) / 1000).toString();
-    if (currentValue.length > 10){
-      screenBottom.innerText = scientific(currentValue, 10);
-    }
-    else{
-      screenBottom.innerText = currentValue;
-    }
-    operator = '';
-    previousValue = currentValue;;
+  if(receipt.length === 2 && currentValue){
+    receipt.push(currentValue);
+    screenTop.innerText = scientific(receipt[0],7) + " " + receipt[1] + " " + scientific(receipt[2],7) + " ="
+    receipt[0] = evaluate(receipt);
+    receipt.splice(1,2);
+    currentValue = receipt[0]
+    screenBottom.innerText = scientific(currentValue, 10);
   }
 });
 
 clearButton.addEventListener('click', () => {
+  receipt = []
   currentValue = '';
-  previousValue = '';
-  operator = '';
   screenBottom.innerText = '0';
   screenTop.innerText = '';
 });
 
 function addDigit(digit) {
-  if (currentValue.length < 10) {
-    if (currentValue === '0' || currentValue === '') {
-      currentValue = digit;
-    } else {
-      currentValue += digit;
-    }
+  if (currentValue.length < 10 && !screenTop.innerText.includes('=')) {
+    currentValue += digit;
+    screenBottom.innerText = currentValue;
+  }
+}
+
+function addDecimal(){
+  if (!currentValue.includes('.')){
+    currentValue += '.';
     screenBottom.innerText = currentValue;
   }
 }
 
 function addOperation(operatorText){
-  if(operator){
-    previousValue = operate(previousValue, currentValue, operator);
+  if (receipt.length === 2 && currentValue){
+    receipt.push(currentValue);
+    receipt[0] = evaluate(receipt);
+    receipt.splice(2,1);
   }
-  else if(currentValue){
-    previousValue = currentValue;
+  else if (receipt.length === 0){
+    receipt[0] = (currentValue || '0');
   }
-  else{
-    previousValue = 0;
-  }
+  receipt[1] = operatorText;
+  screenTop.innerText = scientific(receipt[0],17) + " " + receipt[1];
   currentValue = '';
-  operator = operatorText;
-  screenTop.innerText = previousValue + " " + operatorText;
+  console.log(receipt);
+
 }
 
 function scientific(numStr, space){
-  let power = (numStr.length - 1).toString();
-  return numStr[0] + "." + numStr.slice(1,space-1-power.length) + 'e' + power;
-  // return `${Math.round(Number.parseFloat(numStr) / (10 ** (power)))}e${power}`
-}
-
-decimal.addEventListener("click", () => {
-  updateTopScreen('1 + 2');
-});
-
-function updateTopScreen(str){
-  let [num1, operChar, num2] = str.split(' ')
-  if(str.length > 17){
-    num1 = scientific(num1, 7);
-    num2 = scientific(num2, 7);
+  numStr = (Math.round(Number(numStr) * 10000) / 10000).toString();
+  if(numStr.length <= space){
+    return numStr;
   }
-  screenTop.innerText = num1 + " " + operChar + " " + num2 + " =";
+  if(numStr.includes('e')){
+    let numArr = numStr.split('e')
+    return (Math.round(Number(numArr[0])) * 10000 / 10000).toString() + "e" + numArr[1]
+  }
+  let power = (numStr.length - 1).toString();
+  return numStr[0] + "." + numStr.slice(1,space-2-power.length) + 'e+' + power;
 }
-
-// function shortenNumber(numString){
-//   if(numString.split('.')[0].length > 10){
-
-//   }
-// }
-
-// function updateDisplay(topText, bottomText) {
-//   if (topText.length > 20) {
-//     screenTop.style.fontSize = "1.2em";
-//   }
-//   else{
-//     screenTop.style.fontSize = '1.8em'
-//   }
-//   if (bottomText.length > 10) {
-//     // bottomText = Math.round(Number.parseFloat(bottomText) * 1000) / 1000;
-//     if(bottomText.split('.')[0].length > 10){
-//       let overflow = bottomText.split('.')[0].length - 10;
-//       console.log(overflow);
-//       bottomText = `${Math.round(Number.parseFloat(bottomText) / (10 ** (overflow + 2)))} e${overflow + 2}`
-//     }
-//   }
-//   screenTop.innerText = topText;
-//   screenBottom.innerText = bottomText;
-// }
-
-// deleteButton.addEventListener('click', () => {
-//   if (screenBottom.innerText.length === 1) {
-//     displayValue = 0;
-//     screenBottom.innerText = displayValue;
-//   } else {
-//     screenBottom.innerText = screenBottom.innerText.slice(0, -1);
-//     displayValue = parseInt(screenBottom.innerText);
-//   }
-// });
-
-// for (let operatorButton of operatorButtons) {
-//   operatorButton.addEventListener("click", (e) => {
-//     if (screenTop.innerText) {
-//       let num1 = parseInt(screenTop.innerText.split(" ")[0]);
-//       let num2 = displayValue;
-//       displayValue = operate(num1, num2, operator);
-//       screenBottom.innerText = displayValue;
-//     }
-//     operator = e.target.id;
-//     firstNumber = displayValue;
-//     screenTop.innerText = `${firstNumber} ${e.target.innerText}`;
-//     displayValue = 0;
-//   });
-// }
-
-
